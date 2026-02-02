@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homebanking</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏦 Mi Banco</h1>
+        </header>
+
+        <div class="balance-section">
+            <h2>Saldo Disponible</h2>
+            <div class="balance-amount" id="balance">$50,000.00</div>
+        </div>
+
+        <div class="actions-section">
+            <button class="btn btn-primary" id="btnIngresar">Ingresar Dinero</button>
+            <button class="btn btn-secondary" id="btnTransferir">Transferir Dinero</button>
+        </div>
+
+        <div class="transactions-section">
+            <h3>Últimas Transacciones</h3>
+            <div class="transactions-list" id="transactionsList">
+                <!-- Las transacciones se cargarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ingresar dinero -->
+    <div class="modal" id="modalIngresar">
+        <div class="modal-content">
+            <span class="close" id="closeIngresar">&times;</span>
+            <h2>Ingresar Dinero</h2>
+            <input type="number" id="montoIngresar" placeholder="Ingrese el monto" min="1" step="0.01">
+            <input type="text" id="descripcionIngresar" placeholder="Descripción (opcional)">
+            <button class="btn btn-primary" id="confirmarIngresar">Confirmar</button>
+        </div>
+    </div>
+
+    <!-- Modal para transferir dinero -->
+    <div class="modal" id="modalTransferir">
+        <div class="modal-content">
+            <span class="close" id="closeTransferir">&times;</span>
+            <h2>Transferir Dinero</h2>
+            <input type="number" id="montoTransferir" placeholder="Ingrese el monto" min="1" step="0.01">
+            <input type="text" id="destinatarioTransferir" placeholder="Destinatario">
+            <input type="text" id="descripcionTransferir" placeholder="Descripción (opcional)">
+            <button class="btn btn-secondary" id="confirmarTransferir">Confirmar</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
