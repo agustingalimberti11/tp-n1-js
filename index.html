@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeBanking - Simulador</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Mi cuenta</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Abrir menú">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" href="#movimientos">Movimientos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#tarjetas">Mis Tarjetas</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container py-4">
+    <!-- Saldo actual -->
+    <section class="mb-4" aria-label="Saldo de la cuenta">
+      <div class="card card-saldo">
+        <div class="card-body">
+          <h2 class="h6 text-white-50 mb-1">Saldo disponible</h2>
+          <p class="display-6 mb-0" id="saldo-actual">$ 0,00</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="row">
+      <!-- Columna: nuevo movimiento + listado -->
+      <div class="col-lg-7">
+        <section class="mb-4" id="movimientos">
+          <h3 class="h5 mb-3">Nuevo movimiento</h3>
+          <div class="formulario-movimiento mb-4">
+            <form id="form-movimiento" novalidate>
+              <div class="mb-3">
+                <label for="tipo-movimiento" class="form-label">Tipo</label>
+                <select class="form-select" id="tipo-movimiento" required aria-required="true">
+                  <option value="deposito">Depósito</option>
+                  <option value="extraccion">Extracción</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="monto-movimiento" class="form-label">Monto</label>
+                <input type="number" class="form-control" id="monto-movimiento" step="0.01" min="0.01" placeholder="Ej: 1500" required aria-required="true">
+              </div>
+              <div class="mb-3">
+                <label for="descripcion-movimiento" class="form-label">Descripción (opcional)</label>
+                <input type="text" class="form-control" id="descripcion-movimiento" placeholder="Ej: Pago por servicios">
+              </div>
+              <button type="submit" class="btn btn-primary btn-movimiento">Registrar movimiento</button>
+            </form>
+            <div id="mensaje-movimiento" class="mensaje-usuario" role="status"></div>
+          </div>
+
+          <h3 class="h5 mb-3">Últimos movimientos</h3>
+          <div class="card">
+            <div class="card-body p-0">
+              <div id="lista-movimientos" class="lista-movimientos" aria-live="polite">
+                <!-- Se llena con JavaScript -->
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Columna: tarjetas -->
+      <div class="col-lg-5">
+        <section id="tarjetas">
+          <h3 class="h5 mb-3">Mis Tarjetas</h3>
+          <div class="formulario-tarjeta mb-4">
+            <form id="form-tarjeta" novalidate>
+              <div class="mb-3">
+                <label for="tipo-tarjeta" class="form-label">Tipo de tarjeta</label>
+                <select class="form-select" id="tipo-tarjeta">
+                  <option value="Débito">Débito</option>
+                  <option value="Crédito">Crédito</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="digitos-tarjeta" class="form-label">Últimos 4 dígitos</label>
+                <input type="text" class="form-control" id="digitos-tarjeta" maxlength="4" placeholder="Ej: 1234" pattern="[0-9]{4}" inputmode="numeric" aria-describedby="ayuda-digitos">
+                <div id="ayuda-digitos" class="form-text">Solo los últimos 4 dígitos por seguridad.</div>
+              </div>
+              <div class="mb-3">
+                <label for="vencimiento-tarjeta" class="form-label">Vencimiento</label>
+                <input type="text" class="form-control" id="vencimiento-tarjeta" placeholder="MM/AA">
+              </div>
+              <button type="submit" class="btn btn-outline-primary">Agregar tarjeta</button>
+            </form>
+            <div id="mensaje-tarjeta" class="mensaje-usuario" role="status"></div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div id="lista-tarjetas" aria-live="polite">
+                <!-- Se llena con JavaScript -->
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
