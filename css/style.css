@@ -65,11 +65,19 @@ body {
 
 /* Formularios */
 .formulario-movimiento,
-.formulario-tarjeta {
+.formulario-tarjeta,
+.formulario-servicio {
   background: white;
   border-radius: var(--radio);
   box-shadow: var(--sombra);
   padding: 1.25rem;
+}
+
+.detalle-servicio {
+  padding: 0.75rem;
+  border: 1px solid #e9ecef;
+  border-radius: var(--radio);
+  background: #fafbfc;
 }
 
 .mensaje-usuario {

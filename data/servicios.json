@@ -1,0 +1,30 @@
+[
+  {
+    "codigo": "AGUA",
+    "nombre": "Agua Corriente",
+    "descripcion": "Pago de factura de servicios de agua.",
+    "comisionFija": 120,
+    "comisionPorcentaje": 1.5
+  },
+  {
+    "codigo": "LUZ",
+    "nombre": "Luz Eléctrica",
+    "descripcion": "Pago de factura de electricidad.",
+    "comisionFija": 150,
+    "comisionPorcentaje": 1.2
+  },
+  {
+    "codigo": "INTERNET",
+    "nombre": "Internet Hogar",
+    "descripcion": "Pago de servicio de internet y conexión.",
+    "comisionFija": 90,
+    "comisionPorcentaje": 2.0
+  },
+  {
+    "codigo": "TELEFONIA",
+    "nombre": "Telefonía Móvil",
+    "descripcion": "Pago de factura de telefonía móvil.",
+    "comisionFija": 80,
+    "comisionPorcentaje": 1.8
+  }
+]
