@@ -32,6 +32,12 @@ body {
   font-weight: 700;
 }
 
+/* Filtros del historial */
+.filtros-movimientos {
+  background: #fafbfc;
+  border-bottom: 1px solid #e9ecef;
+}
+
 /* Lista de movimientos */
 .lista-movimientos {
   max-height: 320px;

@@ -94,6 +94,33 @@
           </div>
 
           <h3 class="h5 mb-3">Últimos movimientos</h3>
+          <div class="card mb-2">
+            <div class="card-body py-3 filtros-movimientos">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                  <label for="filtro-tipo-movimiento" class="form-label small mb-1">Tipo</label>
+                  <select class="form-select form-select-sm" id="filtro-tipo-movimiento" aria-label="Filtrar por tipo de movimiento">
+                    <option value="">Todos</option>
+                    <option value="deposito">Solo depósitos</option>
+                    <option value="extraccion">Solo extracciones</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label for="orden-movimientos" class="form-label small mb-1">Ordenar por</label>
+                  <select class="form-select form-select-sm" id="orden-movimientos" aria-label="Ordenar movimientos">
+                    <option value="fecha-desc">Fecha: más recientes</option>
+                    <option value="fecha-asc">Fecha: más antiguos</option>
+                    <option value="monto-desc">Monto: mayor a menor</option>
+                    <option value="monto-asc">Monto: menor a mayor</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label for="busqueda-movimientos" class="form-label small mb-1">Buscar en descripción</label>
+                  <input type="search" class="form-control form-control-sm" id="busqueda-movimientos" placeholder="Ej: comisión, pago..." autocomplete="off" aria-label="Buscar en la descripción del movimiento">
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="card">
             <div class="card-body p-0">
               <div id="lista-movimientos" class="lista-movimientos" aria-live="polite">
@@ -119,12 +146,13 @@
               </div>
               <div class="mb-3">
                 <label for="digitos-tarjeta" class="form-label">Últimos 4 dígitos</label>
-                <input type="text" class="form-control" id="digitos-tarjeta" maxlength="4" placeholder="Ej: 1234" pattern="[0-9]{4}" inputmode="numeric" aria-describedby="ayuda-digitos">
-                <div id="ayuda-digitos" class="form-text">Solo los últimos 4 dígitos por seguridad.</div>
+                <input type="text" class="form-control" id="digitos-tarjeta" maxlength="4" placeholder="Ej: 1234" pattern="[0-9]{4}" inputmode="numeric" required aria-required="true" aria-describedby="ayuda-digitos">
+                <div id="ayuda-digitos" class="form-text">Exactamente 4 dígitos numéricos (sin espacios).</div>
               </div>
               <div class="mb-3">
                 <label for="vencimiento-tarjeta" class="form-label">Vencimiento</label>
-                <input type="text" class="form-control" id="vencimiento-tarjeta" placeholder="MM/AA">
+                <input type="text" class="form-control" id="vencimiento-tarjeta" placeholder="MM/AA" required aria-required="true" aria-describedby="ayuda-vencimiento" maxlength="5">
+                <div id="ayuda-vencimiento" class="form-text">Formato MM/AA y la tarjeta no debe estar vencida.</div>
               </div>
               <button type="submit" class="btn btn-outline-primary">Agregar tarjeta</button>
             </form>

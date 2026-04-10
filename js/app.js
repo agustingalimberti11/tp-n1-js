@@ -155,23 +155,90 @@ function formatearMoneda(valor) {
 }
 
 /**
- * Renderiza la lista de movimientos en el contenedor del DOM.
- * @param {Array} movimientos - Array de objetos movimiento.
- * @param {string} idContenedor - ID del elemento contenedor.
+ * Filtra y ordena movimientos según criterios de la vista.
+ * @param {Array} movimientos - Movimientos de la cuenta.
+ * @param {{ tipoFiltro?: string, busqueda?: string, orden?: string }} opciones
+ * @returns {Array}
  */
-function renderizarMovimientos(movimientos, idContenedor) {
+function prepararMovimientosParaLista(movimientos, opciones) {
+  const opts = opciones || {};
+  const tipoFiltro = opts.tipoFiltro || '';
+  const busqueda = (opts.busqueda || '').trim().toLowerCase();
+  const orden = opts.orden || 'fecha-desc';
+
+  let lista = Array.isArray(movimientos) ? movimientos.slice() : [];
+
+  if (tipoFiltro === 'deposito' || tipoFiltro === 'extraccion') {
+    lista = lista.filter(function (m) {
+      return m.tipo === tipoFiltro;
+    });
+  }
+
+  if (busqueda) {
+    lista = lista.filter(function (m) {
+      return String(m.descripcion || '').toLowerCase().indexOf(busqueda) !== -1;
+    });
+  }
+
+  const factor = orden.indexOf('-asc') !== -1 ? 1 : -1;
+  if (orden.indexOf('fecha') === 0) {
+    lista.sort(function (a, b) {
+      return factor * (new Date(a.fecha) - new Date(b.fecha));
+    });
+  } else if (orden.indexOf('monto') === 0) {
+    lista.sort(function (a, b) {
+      return factor * ((Number(a.monto) || 0) - (Number(b.monto) || 0));
+    });
+  }
+
+  return lista;
+}
+
+/**
+ * Lee filtros y orden desde el DOM (si existen los elementos).
+ * @returns {{ tipoFiltro: string, busqueda: string, orden: string }}
+ */
+function leerCriteriosListaMovimientos() {
+  const selTipo = document.getElementById('filtro-tipo-movimiento');
+  const selOrden = document.getElementById('orden-movimientos');
+  const inputBusqueda = document.getElementById('busqueda-movimientos');
+  return {
+    tipoFiltro: selTipo ? selTipo.value : '',
+    busqueda: inputBusqueda ? inputBusqueda.value : '',
+    orden: selOrden ? selOrden.value : 'fecha-desc'
+  };
+}
+
+/**
+ * Actualiza el listado de movimientos aplicando filtros y orden actuales.
+ */
+function actualizarListaMovimientos() {
+  const cuenta = obtenerCuenta();
+  const criterios = leerCriteriosListaMovimientos();
+  const lista = prepararMovimientosParaLista(cuenta.movimientos, criterios);
+  renderizarMovimientos(lista, 'lista-movimientos', { vacioFiltrado: cuenta.movimientos && cuenta.movimientos.length > 0 });
+}
+
+/**
+ * Renderiza la lista de movimientos en el contenedor del DOM.
+ * @param {Array} movimientos - Array ya filtrado y ordenado.
+ * @param {string} idContenedor - ID del elemento contenedor.
+ * @param {{ vacioFiltrado?: boolean }} [opciones] - Si hay datos pero el filtro no devuelve ninguno.
+ */
+function renderizarMovimientos(movimientos, idContenedor, opciones) {
+  const opts = opciones || {};
   const contenedor = document.getElementById(idContenedor);
   if (!contenedor) return;
 
   if (!movimientos || movimientos.length === 0) {
-    contenedor.innerHTML = '<p class="text-muted mb-0 py-3 text-center">No hay movimientos registrados.</p>';
+    const msg = opts.vacioFiltrado
+      ? 'No hay movimientos que coincidan con el filtro o la búsqueda.'
+      : 'No hay movimientos registrados.';
+    contenedor.innerHTML = '<p class="text-muted mb-0 py-3 text-center">' + msg + '</p>';
     return;
   }
 
-  // Ordenar por fecha descendente (más recientes primero)
-  const ordenados = [...movimientos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-  contenedor.innerHTML = ordenados.map(function (mov) {
+  contenedor.innerHTML = movimientos.map(function (mov) {
     const esDeposito = mov.tipo === 'deposito';
     const claseBadge = esDeposito ? 'badge-deposito' : 'badge-extraccion';
     const signo = esDeposito ? '+' : '-';
@@ -407,7 +474,7 @@ function pagarServicio(codigoServicio, monto, referencia) {
   guardarServiciosPagados(serviciosPagados);
 
   renderizarSaldo(cuenta.saldo);
-  renderizarMovimientos(cuenta.movimientos, 'lista-movimientos');
+  actualizarListaMovimientos();
 
   return { ok: true };
 }
@@ -438,27 +505,91 @@ function agregarMovimiento(tipo, monto, descripcion) {
   guardarCuenta(cuenta);
 
   renderizarSaldo(cuenta.saldo);
-  renderizarMovimientos(cuenta.movimientos, 'lista-movimientos');
+  actualizarListaMovimientos();
   return true;
+}
+
+/**
+ * Valida los últimos 4 dígitos (solo números, longitud exacta).
+ * @param {string} valor
+ * @returns {{ ok: boolean, digitos?: string, error?: string }}
+ */
+function validarUltimosCuatroDigitos(valor) {
+  const soloDigitos = String(valor || '').replace(/\D/g, '');
+  if (soloDigitos.length !== 4) {
+    return { ok: false, error: 'digitos' };
+  }
+  return { ok: true, digitos: soloDigitos };
+}
+
+/**
+ * Valida vencimiento MM/AA (mes 01-12, no vencida respecto al mes de caducidad).
+ * @param {string} valor
+ * @returns {{ ok: boolean, normalizado?: string, error?: string }}
+ */
+function validarVencimientoTarjeta(valor) {
+  const trimmed = String(valor || '').trim();
+  const match = /^(\d{1,2})\/(\d{2})$/.exec(trimmed);
+  if (!match) {
+    return { ok: false, error: 'formato_vencimiento' };
+  }
+  const mes = parseInt(match[1], 10);
+  const anioCorto = parseInt(match[2], 10);
+  if (mes < 1 || mes > 12) {
+    return { ok: false, error: 'mes_invalido' };
+  }
+  const anioCompleto = 2000 + anioCorto;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const finMesVencimiento = new Date(anioCompleto, mes, 0);
+  finMesVencimiento.setHours(23, 59, 59, 999);
+  if (finMesVencimiento < hoy) {
+    return { ok: false, error: 'vencida' };
+  }
+  const mesStr = mes < 10 ? '0' + mes : String(mes);
+  const anioStr = anioCorto < 10 ? '0' + anioCorto : String(anioCorto);
+  return { ok: true, normalizado: mesStr + '/' + anioStr };
+}
+
+/**
+ * Valida tipo de tarjeta permitido.
+ * @param {string} tipo
+ * @returns {boolean}
+ */
+function esTipoTarjetaValido(tipo) {
+  const t = String(tipo || '').trim();
+  return t === 'Débito' || t === 'Crédito';
 }
 
 /**
  * Agrega una tarjeta y la persiste en localStorage.
  * @param {string} tipo - Tipo de tarjeta (ej: Débito, Crédito).
  * @param {string} ultimosDigitos - Últimos 4 dígitos.
- * @param {string} vencimiento - Fecha de vencimiento.
- * @returns {boolean} true si se agregó correctamente.
+ * @param {string} vencimiento - Fecha de vencimiento MM/AA.
+ * @returns {{ ok: boolean, error?: string }}
  */
 function agregarTarjeta(tipo, ultimosDigitos, vencimiento) {
+  if (!esTipoTarjetaValido(tipo)) {
+    return { ok: false, error: 'tipo' };
+  }
+  const valDigitos = validarUltimosCuatroDigitos(ultimosDigitos);
+  if (!valDigitos.ok) {
+    return { ok: false, error: valDigitos.error };
+  }
+  const valVenc = validarVencimientoTarjeta(vencimiento);
+  if (!valVenc.ok) {
+    return { ok: false, error: valVenc.error };
+  }
+
   const tarjetas = obtenerTarjetas();
   tarjetas.push({
-    tipo: (tipo || '').trim() || 'Tarjeta',
-    ultimosDigitos: (ultimosDigitos || '').trim().slice(-4),
-    vencimiento: (vencimiento || '').trim() || '-'
+    tipo: String(tipo).trim(),
+    ultimosDigitos: valDigitos.digitos,
+    vencimiento: valVenc.normalizado
   });
   guardarTarjetas(tarjetas);
   renderizarTarjetas(tarjetas, 'lista-tarjetas');
-  return true;
+  return { ok: true };
 }
 
 /**
@@ -513,18 +644,29 @@ function inicializarEventos() {
   }
 
   if (formTarjeta) {
-    const inputDigitos = document.getElementById('digitos-tarjeta');
-    const inputVencimiento = document.getElementById('vencimiento-tarjeta');
-    if (inputDigitos && !inputDigitos.value) inputDigitos.value = '1234';
-    if (inputVencimiento && !inputVencimiento.value) inputVencimiento.value = '12/26';
-
     formTarjeta.addEventListener('submit', function (e) {
       e.preventDefault();
       ocultarMensaje('mensaje-tarjeta');
       const tipo = document.getElementById('tipo-tarjeta').value;
       const digitos = document.getElementById('digitos-tarjeta').value;
       const vencimiento = document.getElementById('vencimiento-tarjeta').value;
-      agregarTarjeta(tipo, digitos, vencimiento);
+      const resultado = agregarTarjeta(tipo, digitos, vencimiento);
+      if (!resultado.ok) {
+        let textoError = 'No se pudo agregar la tarjeta.';
+        if (resultado.error === 'digitos') {
+          textoError = 'Los últimos dígitos deben ser exactamente 4 números.';
+        } else if (resultado.error === 'formato_vencimiento') {
+          textoError = 'El vencimiento debe tener formato MM/AA (ej: 09/28).';
+        } else if (resultado.error === 'mes_invalido') {
+          textoError = 'El mes de vencimiento debe estar entre 01 y 12.';
+        } else if (resultado.error === 'vencida') {
+          textoError = 'La tarjeta está vencida; cargá una fecha de vencimiento vigente.';
+        } else if (resultado.error === 'tipo') {
+          textoError = 'Seleccioná un tipo de tarjeta válido (Débito o Crédito).';
+        }
+        mostrarMensaje('mensaje-tarjeta', textoError, false);
+        return;
+      }
       mostrarMensaje('mensaje-tarjeta', 'Tarjeta agregada correctamente.', true);
       formTarjeta.reset();
     });
@@ -579,6 +721,22 @@ function inicializarEventos() {
       renderizarDetalleServicio();
     });
   }
+
+  const filtroTipoMov = document.getElementById('filtro-tipo-movimiento');
+  const ordenMovimientos = document.getElementById('orden-movimientos');
+  const busquedaMovimientos = document.getElementById('busqueda-movimientos');
+  function alCambiarFiltrosMovimientos() {
+    actualizarListaMovimientos();
+  }
+  if (filtroTipoMov) {
+    filtroTipoMov.addEventListener('change', alCambiarFiltrosMovimientos);
+  }
+  if (ordenMovimientos) {
+    ordenMovimientos.addEventListener('change', alCambiarFiltrosMovimientos);
+  }
+  if (busquedaMovimientos) {
+    busquedaMovimientos.addEventListener('input', alCambiarFiltrosMovimientos);
+  }
 }
 
 /**
@@ -589,7 +747,7 @@ async function iniciarSimulador() {
   const tarjetas = obtenerTarjetas();
 
   renderizarSaldo(cuenta.saldo);
-  renderizarMovimientos(cuenta.movimientos, 'lista-movimientos');
+  actualizarListaMovimientos();
   renderizarTarjetas(tarjetas, 'lista-tarjetas');
 
   // Carga asíncrona de JSON (datos simulados/remotos).
